@@ -1,0 +1,19 @@
+const activeText = [
+	"cool!",
+	"sweet!",
+	"neat-o!",
+	"wow!",
+	"whoa!",
+	"how?!",
+	"ouch!",
+	"not so hard!",
+	"X_x",
+	"i have feelings too!",
+	"gentler please!"
+];
+const active = document.getElementById("active");
+
+function getActiveText() {
+	let num = Math.floor(Math.random() * activeText.length);
+	active.innerHTML = activeText[num];
+}
