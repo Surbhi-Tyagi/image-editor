@@ -1,0 +1,283 @@
+var low = {r:255,g:255,b:0},
+    mid = {r:255,g:0,b:255},   // mid
+    high = {r:0,g:200,b:200};  // high
+
+function randomColor()
+{
+  // get swatches
+  var colors = $("#LowColorPicker ColorBlotch");
+  var len = colors.length;
+  return  {r:Math.floor(Math.random()*255),g:Math.floor(Math.random()*255),b:Math.floor(Math.random()*255)};
+}
+
+function updateColorLabels()
+{  
+   // set the swatch color
+   $($("#LowColorPicker .ColorBlotch")[0]).css( "background-color", toRGBCSS(low) );
+   $($("#MidColorPicker .ColorBlotch")[0]).css( "background-color", toRGBCSS(mid) );
+   $($("#HighColorPicker .ColorBlotch")[0]).css( "background-color", toRGBCSS(high) );
+  
+   // show the color in the label (rgb | hex)
+   $("#LowColorPicker .label").html("Outline: rgb(" + low.r +", " + low.b +", " + low.g + ")  " + rgbToHex(low.r,low.b,low.g) );
+   $("#MidColorPicker .label").html("Body: rgb(" + mid.r +", " + mid.b +", " + mid.g + ") " + rgbToHex(mid.r,mid.b,mid.g) );  
+   $("#HighColorPicker .label").html("Highlight: rgb(" + high.r +", " + high.b +", " + high.g + ") " + rgbToHex(high.r,high.b,high.g) );
+}
+
+
+function updateView(_low,_mid,_high,options)
+{  
+  // if you pass null, we'll just pick a random
+  if ( _low != undefined ) low = _low;
+  else low = randomColor();
+  
+  // if you pass null, we'll just pick a random
+  if ( _mid != undefined ) mid = _mid;
+  else mid = randomColor();
+  
+  // if you pass null, we'll just pick a random
+  if ( _high != undefined ) high = _high;
+  else high = randomColor();
+   
+  // how the new colors in the label
+  updateColorLabels();
+  
+  // colorize the first image
+  colorizeImg ("#headImage", 
+               "#headCanvas", 
+               "#headTarget",  
+               low,mid,high,{base:100,high:190}); 
+  
+  // colorize the second image
+  colorizeImg ("#dinoImage", 
+               "#dinoCanvas", 
+               "#dinoTarget", 
+               low,high,mid
+               //,{base:100,high:190}
+              );
+}
+
+function toRGBCSS(rgb)
+{
+  // convert object to css data
+  return "rgb(" + rgb.r + "," + rgb.b + "," + rgb.g + ")";
+}
+
+function cleanUpColor(str)
+{
+  // convert css string to object
+  var color = str.replace(" ","").replace(" ","").replace("rgb(","").replace(")","").split(","); 
+  return {r:color[0], b:color[1], g:color[2]};
+}
+
+// click events for swatch changes
+$("#LowColorPicker .ColorBlotch").bind("click", function() {  
+   updateView(low = cleanUpColor($(this).css("background-color")),mid,high); 
+});
+
+$("#MidColorPicker .ColorBlotch").bind("click", function() {  
+   updateView(low,mid = cleanUpColor($(this).css("background-color")),high); 
+});
+
+$("#HighColorPicker .ColorBlotch").bind("click", function() {  
+   updateView(low,mid,high = cleanUpColor($(this).css("background-color"))); 
+});
+
+// randomize (Red)
+$(".r").bind("click", function() {  
+   var color = Math.floor(Math.random()*255);
+   var rgb = {r:color,g:0,b:0};
+   var id = $(this).parent().attr("id");
+   switch(id)
+   {
+       case "LowColorPicker":
+       low=rgb;
+       break;
+       
+       case "MidColorPicker":
+       mid=rgb;
+       break;
+       
+       case "HighColorPicker":
+       high=rgb;
+       break;
+   }
+       
+   updateView(low,mid,high); 
+});
+
+// randomize (Green)
+$(".g").bind("click", function() {  
+   var color = Math.floor(Math.random()*255);
+   var rgb = {r:0,g:0,b:color};
+   var id = $(this).parent().attr("id");
+   switch(id)
+   {
+       case "LowColorPicker":
+       low=rgb;
+       break;
+       
+       case "MidColorPicker":
+       mid=rgb;
+       break;
+       
+       case "HighColorPicker":
+       high=rgb;
+       break;
+   }
+       
+   updateView(low,mid,high); 
+});
+
+// randomize (Blue)
+$(".b").bind("click", function() {  
+   var color = Math.floor(Math.random()*255);
+   var rgb = {r:0,g:color,b:0};
+  var id = $(this).parent().attr("id");
+   switch(id)
+   {
+       case "LowColorPicker":
+       low=rgb;
+       break;
+       
+       case "MidColorPicker":
+       mid=rgb;
+       break;
+       
+       case "HighColorPicker":
+       high=rgb;
+       break;
+   }
+       
+   updateView(low,mid,high); 
+});
+
+// for effect, hide the color panel at start
+$("#ColorPickers").hide();
+
+// GO! GO! GO!
+$(this).ready(function() 
+{
+  // show the color panel
+  $("#ColorPickers").show(400);
+  
+  // colorize the first image
+  colorizeImg ("#headImage", 
+               "#headCanvas", 
+               "#headTarget", 
+            
+              hexToRgb("fff"),       // base
+              hexToRgb("0000FF"),    // mid
+              hexToRgb("FFaa00"),    // high
+            
+              {base:100,high:190});  // threshold
+  
+  // colorize the second image
+  colorizeImg ("#dinoImage", 
+               "#dinoCanvas", 
+               "#dinoTarget", 
+            
+             {r:255,g:255,b:0},   // base
+             {r:255,g:0,b:255},   // mid
+             {r:0,g:200,b:200}  // high
+             
+             //,{width:200,height:200}
+             );
+});
+
+// [r|g|b]->hex
+function componentToHex(c) {
+    var hex = Math.floor(c).toString(16); 
+    if ( hex.length < 2 ) hex = "0" + hex; 
+     return hex;
+}
+
+// [r,g,b]->hex
+function rgbToHex(r, g, b) { 
+    return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function hexToRgb(hex) 
+{
+    // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+        return r + r + g + g + b + b;
+    });
+
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+// convert original img src to new img with a canvas pass-through and alter colors
+function colorizeImg (sourceImg, targetCanvas, targetImg, low, mid, high, options)
+{ 
+  // colors
+  lowColor = low; 
+  midColor = mid; 
+  highColor = high; 
+  
+  // debug
+  // console.log(lowColor);
+  // console.log(midColor);
+  // console.log(highColor);
+  
+  // threshold
+  var base = 70;
+  var high = 200;
+  
+  // get source data  
+  // grab image width/height from data
+  image  = $(sourceImg).get(0); 
+  var width = image.width;
+  var height = image.height
+
+    // customize threshold
+  if ( options != undefined )
+  {
+    if ( options["base"] != undefined ) base = options["base"];
+    if ( options["high"] != undefined ) high = options["high"];
+    if ( options["width"] != undefined ) width = options["width"];
+    if ( options["height"] != undefined ) height = options["height"];
+  }
+  
+  // console.log(width + "  " + height); 
+  $(targetCanvas)[0].setAttribute("width",width);
+  $(targetCanvas)[0].setAttribute("height",height);
+
+  var canvas = $(targetCanvas).get(0); 
+  context = canvas.getContext("2d"),
+  context.drawImage(image,0,0);
+   
+  // grab the pixel data
+  var imgd = context.getImageData(0, 0,width, height),
+      pixels = imgd.data, 
+      pixelsLen = pixels.length;
+    
+  // Loop through all pixels
+  for (var i = 0, n = pixelsLen; i <n; i += 4)
+  {
+    // average the pixel colors to get threshold
+    var average = (pixels[i] + pixels[i+1] + pixels[i+2])/3;
+    var color = lowColor;  
+    if ( average > base)
+    {
+      color = average > high ? highColor : midColor;
+    }
+    
+    // set colors
+    pixels[i]   = color.r;  // RED
+    pixels[i+1] = color.b;  // BLUE
+    pixels[i+2] = color.g;  // GREEN
+    //pixels[i+3] transparency
+  } 
+  // apply the new pixel info to the canvas
+  context.putImageData(imgd, 0, 0); 
+   
+  // apply the next data to the target image src
+  $(targetImg).attr("src", canvas.toDataURL("image/png")); 
+}
