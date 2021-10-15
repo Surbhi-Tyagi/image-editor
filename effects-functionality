@@ -1,0 +1,70 @@
+const canvas = document.getElementById("canvas")
+    , context = canvas.getContext('2d')
+const imgSrc = document.querySelector('input[type="file"]')
+
+let ORIGINAL_IMAGE_DATA
+
+const cacheImageData = () => {
+  const original = context.getImageData(0, 0, canvas.width, canvas.height).data
+  ORIGINAL_IMAGE_DATA = new Uint8ClampedArray(original.length)
+  for (let i = 0; i < original.length; i += 1) {
+    ORIGINAL_IMAGE_DATA[i] = original[i]
+  }
+  
+  const resetButton = document.querySelector('input[value="Reset"]')
+
+  resetButton.addEventListener('click', () => {
+    const imgData = context.getImageData(0, 0, canvas.width, canvas.height)
+    for (let i = 0; i < imgData.data.length; i += 1) {
+      imgData.data[i] = ORIGINAL_IMAGE_DATA[i]
+    }
+    context.putImageData(imgData, 0, 0)
+  })
+}
+
+const drawImage = img => {
+  canvas.height = img.height
+  canvas.width = img.width
+  context.drawImage(img, 0, 0, img.width, img.height)
+  cacheImageData()
+}
+const loadImage = e => {
+  const img = new Image()
+  img.src = e.target.result
+  img.addEventListener('load', () => {
+      drawImage(img)
+  })
+}
+const detectImageInput = e => {
+  const file = e.target.files[0]
+      , fr = new FileReader()
+  if (!file.type.includes("image")) return
+  fr.addEventListener('load', loadImage)
+  fr.readAsDataURL(file)
+}
+imgSrc.addEventListener('change', detectImageInput)
+
+const grayButton = document.querySelector('input[value="Grayscale"]')
+
+grayButton.addEventListener('click', () => {
+  const imgData = context.getImageData(0, 0, canvas.width, canvas.height)
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    const r = imgData.data[i]
+      , g = imgData.data[i+1]
+      , b = imgData.data[i+2]
+      , avg = Math.round((r + g + b) / 3)
+    imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = avg
+  }
+  context.putImageData(imgData, 0, 0)
+})
+
+const redButton = document.querySelector('input[value="Red"]')
+
+redButton.addEventListener('click', () => {
+  const imgData = context.getImageData(0, 0, canvas.width, canvas.height)
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    imgData.data[i] = 255
+  }
+  context.putImageData(imgData, 0, 0)
+})
+
